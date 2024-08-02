@@ -1,4 +1,5 @@
 import { Hono } from 'hono';
+import { cors } from 'hono/cors';
 
 export interface Env {
 	DB: D1Database;
@@ -6,12 +7,15 @@ export interface Env {
 
 const app = new Hono<{ Bindings: Env }>();
 
+app.use(cors());
+
 app.get('/', async (c) => {
 	return c.text('Hello World! Im DAVID!');
 });
 
 app.get('/essay-list', async (c) => {
-	return c.text('essay list');
+	const data = await c.env.DB.prepare('SELECT EssayId, EssayTitle from Essays').all();
+	return c.text(JSON.stringify(data.results));
 });
 
 app.get('/essay/:id', async (c) => {
@@ -22,8 +26,7 @@ app.get('/essay/:id', async (c) => {
 
 	console.log(essays);
 
-	const id: string = c.req.param('id');
-	return c.text(`${JSON.stringify(essays)}` + id);
+	return c.text(JSON.stringify(essays));
 });
 
 export default app;
